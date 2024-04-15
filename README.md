@@ -20,7 +20,7 @@ end
 Modify your config/config.ex file
 
 ```elixir
-config :acme, repo: YOUR_REPO
+config :acme, repo: MyApp.Repo 
 ```
 
 After the packages are installed you must create a database migration to add the oban_jobs table to your database:
