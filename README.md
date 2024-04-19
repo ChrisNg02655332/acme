@@ -22,7 +22,7 @@ Modify your config/config.ex file
 config :acme, repo: MyApp.Repo 
 ```
 
-After the packages are installed you must create a database migration to add the oban_jobs table to your database:
+After the packages are installed you must create a database migration to add the acme_jobs table to your database:
 
 ```elixir
 mix ecto.gen.migration add_acme_jobs_table
