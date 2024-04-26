@@ -1,8 +1,6 @@
 defmodule Acme.AcmeJobs do
   use Ecto.Schema
-
   import Ecto.Changeset
-  import Acme.Config
 
   @primary_key false
   schema "acme_jobs" do
@@ -21,30 +19,5 @@ defmodule Acme.AcmeJobs do
     |> cast(attrs, [:name, :schedule, :state, :args, :module, :task])
     |> validate_required([:name, :schedule, :module, :task])
     |> unique_constraint(:name)
-  end
-
-  def list do
-    Acme.AcmeJobs |> resolve(:repo).all()
-  end
-
-  def get(name) do
-    Acme.AcmeJobs |> resolve(:repo).get_by(name: name) |> resolve(:repo).one()
-  end
-
-  def insert(attrs) do
-    %Acme.AcmeJobs{}
-    |> changeset(attrs)
-    |> resolve(:repo).insert()
-  end
-
-  def update(name, attrs) do
-    Acme.AcmeJobs
-    |> resolve(:repo).get_by(name: name)
-    |> changeset(attrs)
-    |> resolve(:repo).update()
-  end
-
-  def delete(name) do
-    get(name) |> resolve(:repo).delete()
   end
 end

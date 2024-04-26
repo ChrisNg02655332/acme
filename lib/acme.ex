@@ -1,10 +1,10 @@
 defmodule Acme do
-  import Crontab.CronExpression.Parser, only: [parse!: 2]
-  import Crontab.Scheduler
-
   @moduledoc """
   Documentation for `Acme`.
   """
+  import Crontab.CronExpression.Parser, only: [parse!: 2]
+  import Crontab.Scheduler
+  import Acme.Config
   alias Acme.AcmeJobs
 
   @doc """
@@ -42,9 +42,9 @@ defmodule Acme do
     |> Acme.Scheduler.add_job()
 
     if exist == nil do
-      Acme.AcmeJobs.insert(Map.put_new(attrs, :name, to_string(name)))
+      insert(Map.put_new(attrs, :name, to_string(name)))
     else
-      Acme.AcmeJobs.update(to_string(name), attrs)
+      update(to_string(name), attrs)
     end
   end
 
@@ -55,40 +55,74 @@ defmodule Acme do
 
   def remove_job(name) when is_atom(name) do
     Acme.Scheduler.delete_job(name)
-    Acme.AcmeJobs.delete(to_string(name))
+    delete(to_string(name))
   end
 
   def remove_job(_), do: raise("Job name should be atom")
 
   def activate_job(name) when is_atom(name) do
     Acme.Scheduler.activate_job(name)
-    Acme.AcmeJobs.update(to_string(name), %{state: :active})
+    update(to_string(name), %{state: :active})
   end
 
   def activate_job(_), do: raise("Job name should be atom")
 
   def deactivate_job(name) when is_atom(name) do
     Acme.Scheduler.deactivate_job(name)
-    Acme.AcmeJobs.update(to_string(name), %{state: :deactive})
+    update(to_string(name), %{state: :deactive})
   end
 
   def deactivate_job(_), do: raise("Job name should be atom")
 
-  def get_next_run_dates_from(name, date, take \\ 10) do
+  def get_next_trigger_dates(name, opts \\ []) do
     with true <- is_atom(name),
-         job <- Acme.AcmeJobs.get(name) do
-      {:ok, Enum.take(get_next_run_dates(job.schedule, date), take)}
+         job <- get(to_string(name)) do
+      {:ok,
+       Enum.take(
+         get_next_run_dates(
+           parse!(job.schedule, opts[:extended] || false),
+           opts[:date] || NaiveDateTime.utc_now()
+         ),
+         opts[:take] || 10
+       )}
     else
       _ -> {:error, :not_found}
     end
   end
 
-  def get_next_trigger_dates!(name, date, take \\ 10) do
+  def get_next_trigger_dates!(name, opts \\ []) do
     with true <- is_atom(name),
-         job <- Acme.AcmeJobs.get(name) do
-      Enum.take(get_next_run_dates(job.schedule, date), take)
+         job <- get(to_string(name)) do
+      Enum.take(
+        get_next_run_dates(
+          parse!(job.schedule, opts[:extended] || false),
+          opts[:date] || NaiveDateTime.utc_now()
+        ),
+        opts[:take] || 10
+      )
     else
       _ -> raise "No job available"
     end
+  end
+
+  # CRUD AcmeJobs - DONOT export
+
+  defp get(name), do: AcmeJobs |> resolve(:repo).get_by(name: name)
+
+  defp insert(attrs) do
+    %AcmeJobs{}
+    |> AcmeJobs.changeset(attrs)
+    |> resolve(:repo).insert()
+  end
+
+  defp update(name, attrs) do
+    AcmeJobs
+    |> resolve(:repo).get_by(name: name)
+    |> AcmeJobs.changeset(attrs)
+    |> resolve(:repo).update()
+  end
+
+  defp delete(name) do
+    AcmeJobs |> resolve(:repo).get_by(name: name) |> resolve(:repo).delete()
   end
 end
