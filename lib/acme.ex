@@ -74,6 +74,18 @@ defmodule Acme do
 
   def deactivate_job(_), do: raise("Job name should be atom")
 
+  @doc """
+  Acme perform.
+
+  The second field can only be used in extended Cron expressions.
+  opts = [extended: true]
+
+  ## Examples
+
+      iex> Acme.get_next_trigger_dates(:name, opts \\ [])
+      {:ok, list}
+
+  """
   def get_next_trigger_dates(name, opts \\ []) do
     with true <- is_atom(name),
          job <- get(to_string(name)) do
@@ -107,7 +119,7 @@ defmodule Acme do
 
   # CRUD AcmeJobs - DONOT export
 
-  defp get(name), do: AcmeJobs |> resolve(:repo).get_by(name: name)
+  defp get(name), do: AcmeJobs |> resolve(:repo).get_by!(name: name)
 
   defp insert(attrs) do
     %AcmeJobs{}
@@ -117,12 +129,12 @@ defmodule Acme do
 
   defp update(name, attrs) do
     AcmeJobs
-    |> resolve(:repo).get_by(name: name)
+    |> resolve(:repo).get_by!(name: name)
     |> AcmeJobs.changeset(attrs)
     |> resolve(:repo).update()
   end
 
   defp delete(name) do
-    AcmeJobs |> resolve(:repo).get_by(name: name) |> resolve(:repo).delete()
+    AcmeJobs |> resolve(:repo).get_by!(name: name) |> resolve(:repo).delete()
   end
 end
