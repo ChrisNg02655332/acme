@@ -27,6 +27,10 @@ defmodule Acme.AcmeJobs do
     Acme.AcmeJobs |> resolve(:repo).all()
   end
 
+  def get(name) do
+    Acme.AcmeJobs |> resolve(:repo).get_by(name: name) |> resolve(:repo).one()
+  end
+
   def insert(attrs) do
     %Acme.AcmeJobs{}
     |> changeset(attrs)
@@ -41,6 +45,6 @@ defmodule Acme.AcmeJobs do
   end
 
   def delete(name) do
-    Acme.AcmeJobs |> resolve(:repo).get_by(name: name) |> resolve(:repo).delete()
+    get(name) |> resolve(:repo).delete()
   end
 end

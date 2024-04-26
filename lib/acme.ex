@@ -5,6 +5,7 @@ defmodule Acme do
   @moduledoc """
   Documentation for `Acme`.
   """
+  alias Acme.AcmeJobs
 
   @doc """
   Acme perform.
@@ -73,9 +74,21 @@ defmodule Acme do
 
   def deactivate_job(_), do: raise("Job name should be atom")
 
-  def get_next_run_dates(cron_job, date, take \\ 10),
-    do: Enum.take(get_next_run_date(cron_job, date), take)
+  def get_next_run_dates_from(name, date, take \\ 10) do
+    with true <- is_atom(name),
+         job <- Acme.AcmeJobs.get(name) do
+      {:ok, Enum.take(get_next_run_dates(job.schedule, date), take)}
+    else
+      _ -> {:error, :not_found}
+    end
+  end
 
-  def get_next_run_dates!(cron_job, date, take \\ 10),
-    do: Enum.take(get_next_run_date!(cron_job, date), take)
+  def get_next_trigger_dates!(name, date, take \\ 10) do
+    with true <- is_atom(name),
+         job <- Acme.AcmeJobs.get(name) do
+      Enum.take(get_next_run_dates(job.schedule, date), take)
+    else
+      _ -> raise "No job available"
+    end
+  end
 end
