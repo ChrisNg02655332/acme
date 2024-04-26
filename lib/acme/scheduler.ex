@@ -3,6 +3,7 @@ defmodule Acme.Scheduler do
 
   alias Ecto.Repo
   alias Acme.AcmeJobs
+  import Acme.Config
 
   import Crontab.CronExpression.Parser, only: [parse!: 2]
 
@@ -18,7 +19,7 @@ defmodule Acme.Scheduler do
     else
       delete_all_jobs()
 
-      AcmeJobs.list()
+      resolve(:repo).all(AcmeJobs)
       |> Enum.each(fn p ->
         Acme.Scheduler.new_job()
         |> Quantum.Job.set_name(String.to_atom(p.name))
