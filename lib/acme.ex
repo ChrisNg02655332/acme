@@ -1,5 +1,6 @@
 defmodule Acme do
   import Crontab.CronExpression.Parser, only: [parse!: 2]
+  import Crontab.Scheduler
 
   @moduledoc """
   Documentation for `Acme`.
@@ -8,14 +9,21 @@ defmodule Acme do
   @doc """
   Acme perform.
 
+  The second field can only be used in extended Cron expressions.
+  opts = [extended: true]
+
   ## Examples
 
-      iex> Acme.perform(:name, "* * * * * *", cb, args)
+      iex> Acme.perform(args, :name, "* * * * * *", cb, opts \\ [])
       :ok
 
   """
-  def perform(args, name, schedule, {module, task})
-      when is_atom(name) do
+
+  def perform(args, name, schedule, {module, task}, opts \\ []) do
+    if(is_atom(name) == false) do
+      raise "Job name should be atom"
+    end
+
     exist =
       list_job()
       |> Enum.find(fn {job_name, _} -> job_name == name end)
@@ -28,7 +36,7 @@ defmodule Acme do
 
     Acme.Scheduler.new_job()
     |> Quantum.Job.set_name(name)
-    |> Quantum.Job.set_schedule(parse!(schedule, false))
+    |> Quantum.Job.set_schedule(parse!(schedule, opts[:extended] || false))
     |> Quantum.Job.set_task({String.to_atom("Elixir." <> module), String.to_atom(task), [args]})
     |> Acme.Scheduler.add_job()
 
@@ -38,8 +46,6 @@ defmodule Acme do
       Acme.AcmeJobs.update(to_string(name), attrs)
     end
   end
-
-  def perform(_, _, _, _), do: raise("Job name should be atom")
 
   def list_job(), do: Acme.Scheduler.jobs()
 
@@ -66,4 +72,10 @@ defmodule Acme do
   end
 
   def deactivate_job(_), do: raise("Job name should be atom")
+
+  def get_next_run_dates(cron_job, date, take \\ 10),
+    do: Enum.take(get_next_run_date(cron_job, date), take)
+
+  def get_next_run_dates!(cron_job, date, take \\ 10),
+    do: Enum.take(get_next_run_date!(cron_job, date), take)
 end
