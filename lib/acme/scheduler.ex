@@ -18,8 +18,9 @@ defmodule Acme.Scheduler do
       prepare_jobs()
     else
       delete_all_jobs()
+      prefix = resolve(:prefix, "public")
 
-      resolve(:repo).all(AcmeJobs)
+      resolve(:repo).all(AcmeJobs, prefix: prefix)
       |> Enum.each(fn p ->
         Acme.Scheduler.new_job()
         |> Quantum.Job.set_name(String.to_atom(p.name))
