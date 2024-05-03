@@ -119,22 +119,31 @@ defmodule Acme do
 
   # CRUD AcmeJobs - DONOT export
 
-  defp get(name), do: AcmeJobs |> resolve(:repo).get_by!(name: name)
+  defp get(name) do
+    prefix = resolve(:prefix, "public")
+    AcmeJobs |> resolve(:repo).get_by!([name: name], prefix: prefix)
+  end
 
   defp insert(attrs) do
+    prefix = resolve(:prefix, "public")
+
     %AcmeJobs{}
     |> AcmeJobs.changeset(attrs)
-    |> resolve(:repo).insert()
+    |> resolve(:repo).insert(prefix: prefix)
   end
 
   defp update(name, attrs) do
+    prefix = resolve(:prefix, "public")
+
     AcmeJobs
     |> resolve(:repo).get_by!(name: name)
     |> AcmeJobs.changeset(attrs)
-    |> resolve(:repo).update()
+    |> resolve(:repo).update(prefix: prefix)
   end
 
   defp delete(name) do
-    AcmeJobs |> resolve(:repo).get_by!(name: name) |> resolve(:repo).delete()
+    prefix = resolve(:prefix, "public")
+
+    AcmeJobs |> resolve(:repo).get_by!(name: name) |> resolve(:repo).delete(prefix: prefix)
   end
 end
