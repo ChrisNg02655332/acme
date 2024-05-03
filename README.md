@@ -16,10 +16,17 @@ end
 
 ## Setup
 
+|   opts         |    default   |   type   |
+|----------------|:------------:|---------:|
+| repo           |  MyApp.Repo  |  module  |
+| prefix         |  public      |  string  |
+| init_scheduler |  true        |  boolean |
+
+
 Modify your config/config.ex file
 
 ```elixir
-config :acme, repo: MyApp.Repo 
+config :acme, opts 
 ```
 
 After the packages are installed you must create a database migration to add the acme_jobs table to your database:
@@ -34,12 +41,13 @@ Open the generated migration in your editor and call the up and down functions o
 defmodule MyApp.Repo.Migrations.AddAcmeJobsTable do
   use Ecto.Migration
 
+  #IMPORTANT: opts only support prefix and need to add prefix to config
   def up do
-    Acme.Migrations.up()
+    Acme.Migrations.up(opts \\ [])
   end
 
   def down do
-    Acme.Migrations.down()
+    Acme.Migrations.down(opts \\ [])
   end
 end
 ```
