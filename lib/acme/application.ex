@@ -4,7 +4,7 @@ defmodule Acme.Application do
 
   @impl true
   def start(_type, _args) do
-    children = if resolve(:init_scheduler, true), do: [Acme.Scheduler], else: []
+    children = if resolve(:init_scheduler, true) == true, do: [Acme.Scheduler], else: []
     Supervisor.start_link(children, strategy: :one_for_one, name: Acme.Supervisor)
   end
 end

@@ -8,7 +8,10 @@ defmodule Acme.Scheduler do
   import Crontab.CronExpression.Parser, only: [parse!: 2]
 
   def init(opts) do
-    Task.start(fn -> prepare_jobs() end)
+    if resolve(:init_scheduler, true) == true do
+      Task.start(fn -> prepare_jobs() end)
+    end
+
     opts
   end
 
